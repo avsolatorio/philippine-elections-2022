@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 requests = "*"
+brotlipy = "*"
 
 [dev-packages]
 pylint = "*"

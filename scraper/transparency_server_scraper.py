@@ -1,6 +1,9 @@
 import json
 from pathlib import Path
 import requests
+import brotli
+
+from .headers import HEADERS
 
 
 DATA_DIR = Path("__file__").parent / "data"
@@ -17,8 +20,10 @@ def get_result_url(uri):
 
 
 def get_cache_data(url, use_cache=True):
+    print(f"Getting data from {url}")
+
     url_path = Path(url)
-    data_fname = Path(DATA_DIR, url_path.as_posix().split("/")[-3:])
+    data_fname = Path(DATA_DIR, *url_path.as_posix().split("/")[-3:])
     data = None
 
     if use_cache:
@@ -26,13 +31,13 @@ def get_cache_data(url, use_cache=True):
             data = json.loads(data_fname.read_text())
 
     if data is None:
-        response = requests.get(url)
+        response = requests.get(url, headers=HEADERS)
 
-        if data.status_code == 200:
-            data = response.json()
+        if response.status_code == 200:
+            data = json.loads(brotli.decompress(response.content))
             data_fname.write_text(json.dumps(data))
         else:
-            raise Exception(f"Failed to fetch data from {url}")
+            raise Exception(f"Failed to fetch data from {url}. Received status code {response.status_code}")
 
     return data
 
