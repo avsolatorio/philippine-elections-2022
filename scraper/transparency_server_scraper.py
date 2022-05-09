@@ -3,7 +3,7 @@ from pathlib import Path
 import requests
 import brotli
 
-from .headers import HEADERS
+from headers import HEADERS
 
 
 DATA_DIR = Path("__file__").parent / "data"
@@ -34,7 +34,10 @@ def get_cache_data(url, use_cache=True):
         response = requests.get(url, headers=HEADERS)
 
         if response.status_code == 200:
-            data = json.loads(brotli.decompress(response.content))
+            # data = json.loads(brotli.decompress(response.content))
+            data = response.json()
+
+            data_fname.parent.mkdir(parents=True, exist_ok=True)
             data_fname.write_text(json.dumps(data))
         else:
             raise Exception(f"Failed to fetch data from {url}. Received status code {response.status_code}")
@@ -74,4 +77,5 @@ for _, r_data in country_data.get("srs", {}).items():
                     for p in pps:
                         vbs = p.get("vbs", [])
                         for v in vbs:
-                            get_cache_data(v["url"])
+                            result_url = get_result_url(v["url"])
+                            get_cache_data(result_url)
