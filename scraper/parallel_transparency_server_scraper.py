@@ -44,23 +44,27 @@ def get_cache_data(url, use_cache=True):
         else:
             if "AccessDenied" in response.text:
                 print(f"AccessDenied: {url} - {response.status_code}")
-                return
+                return {}
             else:
                 raise Exception(f"Failed to fetch data from {url}. Received status code {response.status_code}")
 
     return data
 
 
-def parallel_scrape_municipalities(c_data):
-    log_region_data(c_data)  # city/municipality
-    uri = c_data["url"]
+def parallel_scrape_municipalities(c_data, r_name, p_name):
+    c_name = get_data_name(c_data)
+    log_data_name(r_name, p_name, c_name)
+
+    uri = c_data["url"]  # city/municipality
 
     city_url = get_region_url(uri)
     city_data = get_cache_data(city_url)
 
     for _, b_data in city_data.get("srs", {}).items():
-        log_region_data(b_data)  # barangay
-        uri = b_data["url"]
+        b_name = get_data_name(b_data)
+        log_data_name(r_name, p_name, c_name, b_name)
+
+        uri = b_data["url"]  # barangay
 
         barangay_url = get_region_url(uri)
         barangay_data = get_cache_data(barangay_url)
@@ -74,8 +78,16 @@ def parallel_scrape_municipalities(c_data):
                     get_cache_data(result_url)
 
 
+def get_data_name(data):
+    return f'{data["can"]}::{data["rn"]}'
+
+
 def log_region_data(data):
-    print(f'{data["can"]}\t{data["rn"]}')
+    print(get_data_name(data))
+
+
+def log_data_name(*args):
+    print("\t".join(args))
 
 
 if __name__ == "__main__":
@@ -83,20 +95,23 @@ if __name__ == "__main__":
     country_url = get_region_url("44/44021")
     country_data = get_cache_data(country_url)
 
-
-    with Parallel(n_jobs=5) as parallel:
+    with Parallel(n_jobs=100) as parallel:
         for _, r_data in country_data.get("srs", {}).items():
-            log_region_data(r_data)
+            r_name = get_data_name(r_data)
+            log_data_name(r_name)
+
             uri = r_data["url"]  # region
 
             region_url = get_region_url(uri)
             region_data = get_cache_data(region_url)
 
             for _, p_data in region_data.get("srs", {}).items():
-                log_region_data(p_data)
+                p_name = get_data_name(p_data)
+                log_data_name(r_name, p_name)
+
                 uri = p_data["url"]  # province
 
                 province_url = get_region_url(uri)
                 province_data = get_cache_data(province_url)
 
-                parallel(delayed(parallel_scrape_municipalities)(c_data) for _, c_data in province_data.get("srs", {}).items())
+                parallel(delayed(parallel_scrape_municipalities)(c_data, r_name, p_name) for _, c_data in province_data.get("srs", {}).items())
