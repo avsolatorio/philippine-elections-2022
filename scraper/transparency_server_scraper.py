@@ -40,33 +40,45 @@ def get_cache_data(url, use_cache=True):
             data_fname.parent.mkdir(parents=True, exist_ok=True)
             data_fname.write_text(json.dumps(data))
         else:
-            raise Exception(f"Failed to fetch data from {url}. Received status code {response.status_code}")
+            if "AccessDenied" in response.text:
+                print(f"AccessDenied: {url} - {response.status_code}")
+                return
+            else:
+                raise Exception(f"Failed to fetch data from {url}. Received status code {response.status_code}")
 
     return data
+
+
+def log_region_data(data):
+    print(f'{data["can"]}\t{data["rn"]}')
 
 
 country_url = get_region_url("44/44021")
 country_data = get_cache_data(country_url)
 
 for _, r_data in country_data.get("srs", {}).items():
+    log_region_data(r_data)
     uri = r_data["url"]  # region
 
     region_url = get_region_url(uri)
     region_data = get_cache_data(region_url)
 
     for _, p_data in region_data.get("srs", {}).items():
+        log_region_data(p_data)
         uri = p_data["url"]  # province
 
         province_url = get_region_url(uri)
         province_data = get_cache_data(province_url)
 
         for _, c_data in province_data.get("srs", {}).items():
+            log_region_data(c_data)
             uri = c_data["url"]
 
             city_url = get_region_url(uri)
             city_data = get_cache_data(city_url)
 
             for _, b_data in city_data.get("srs", {}).items():
+                log_region_data(b_data)
                 uri = b_data["url"]
 
                 barangay_url = get_region_url(uri)
