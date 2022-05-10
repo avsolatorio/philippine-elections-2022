@@ -10,6 +10,7 @@ pandas = "*"
 matplotlib = "*"
 joblib = "*"
 filelock = "*"
+scipy = "*"
 
 [dev-packages]
 pylint = "*"
