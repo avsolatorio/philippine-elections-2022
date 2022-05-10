@@ -8,6 +8,8 @@ requests = "*"
 brotlipy = "*"
 pandas = "*"
 matplotlib = "*"
+joblib = "*"
+filelock = "*"
 
 [dev-packages]
 pylint = "*"
