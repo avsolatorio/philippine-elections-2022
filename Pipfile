@@ -6,9 +6,12 @@ name = "pypi"
 [packages]
 requests = "*"
 brotlipy = "*"
+pandas = "*"
+matplotlib = "*"
 
 [dev-packages]
 pylint = "*"
+ipykernel = "*"
 
 [requires]
 python_version = "3.8"
