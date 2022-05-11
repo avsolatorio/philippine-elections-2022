@@ -21,7 +21,7 @@ def get_result_url(uri):
     return f"{BASE_URL}/results/{uri}.json"
 
 
-def get_cache_data(url, use_cache=True):
+def get_cache_data(url, use_cache=True, load_if_exists=True):
     print(f"Getting data from {url}")
 
     url_path = Path(url)
@@ -30,7 +30,10 @@ def get_cache_data(url, use_cache=True):
 
     if use_cache:
         if data_fname.exists():
-            data = json.loads(data_fname.read_text())
+            if load_if_exists:
+                data = json.loads(data_fname.read_text())
+            else:
+                return
 
     if data is None:
         response = requests.get(url, headers=HEADERS)
@@ -75,7 +78,7 @@ def parallel_scrape_municipalities(c_data, r_name, p_name):
                 vbs = p.get("vbs", [])
                 for v in vbs:
                     result_url = get_result_url(v["url"])
-                    get_cache_data(result_url)
+                    get_cache_data(result_url, load_if_exists=False)
 
 
 def get_data_name(data):
